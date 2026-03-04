@@ -1,8 +1,6 @@
 # Curso de Introducción práctica a OMOP
 
-
 ## Contactos
-
 Si tenéis algún problema al preparar R para la práctica, por favor contactad con:
 - Anna Palomar: apalomar@idiapjgol.org
 - Agustina Giuliodori: agiuliodori@idiapjgol.org
@@ -28,8 +26,6 @@ Sigue estas instrucciones para preparar tu "R environment":
 ### 4) Instalar Java 
 - https://www.ohdsi.org/web/wiki/doku.php?id=documentation:r_setup
 
-Después de estos pasos abre el RStudio. Descarga el repositorio cómo carpeta zip y descomprime los archivos.
-![training](https://github.com/rwepi-idiapjgol/CursoOMOP_SetUp/blob/main/Otros/download_repo.png)
+Descarga el repositorio de GitHub cómo carpeta zip y descomprime los archivos.
 
-Abre el proyecto: `CURSO_OMOP_2026.Rproj `. Si lo has abierto correctamente, tendrías que ver lo siguiente:
-![training](https://github.com/rwepi-idiapjgol/CursoOMOP_SetUp/blob/main/Otros/set_up_Rproj.png)
+Después de estos pasos abre el proyecto: `CURSO_OMOP_2026.Rproj` en RStudio .

@@ -1,0 +1,616 @@
+---
+title: "Conexión CDM"
+subtitle: "Iniciación práctica en el análisis de datos OMOP"
+author: 
+  - Real World Epidemiology Group
+institute: 
+  - IDIAP Jordi Gol
+format:
+  html:
+    embed-resources: true
+editor: visual
+echo: true
+eval: true
+toc: true
+warning: false
+---
+
+## Objetivo
+
+El objetivo de esta práctica es conectarse a una base de datos sintética en formato *OMOP*, crear un objeto CDM y trabajar relacionando las diferentes tablas que nos ofrece. 
+
+## ¿Cómo funciona?
+
+En este fichero encontrarás una serie de ejercicios que te proponemos realizar, acompañados de teoría y de pistas para su resolución.
+
+En primer lugar, deberás abrir el proyecto *CURSO_OMOP_2026.Rproj* en RStudio y crear un *script R* en el mismo directorio para resolver los ejercicios. Cada ejercicio incluye pistas, ya que el curso está dirigido a perfiles variados: algunas personas necesitarán indicaciones sobre programación en R, otras sobre cómo localizar información en OMOP, y otras podrán resolverlo de manera más autónoma.
+
+Asimismo, en este directorio encontrarás un fichero adicional con las soluciones a los ejercicios, para poder autocorregirte la práctica. Si tienes cualquier duda, consulta con los docentes de apoyo durante las prácticas y procura utilizar las soluciones únicamente para comprobar tus resultados.
+
+Recuerda haber realizado el SetUp correspondiente a las prácticas, que se encuentra en este mismo directorio.
+
+## Paquetes R
+
+Para realizar la práctica, primero deberemos abrir el proyecto **CURSO_OMOP_2026.Rproj** que se encuentra en esta misma carpeta. Al abrir este proyecto, mediante la librería **renv**, se genera un entorno en el cual instalaremos las librerías necesarias para la práctica (listadas en el fichero *renv.lock*).
+
+Para instalar estas librerías, ejecuta el siguiente comando en R. Si hemos realizado correctamente el SetUp, entonces veremos un mensaje que las librerías están sincronizadas con el renv.lock.
+
+```{r, eval=FALSE}
+renv::restore()
+```
+
+Los paquetes que utilizaremos en esta práctica son los siguientes:
+
+-   `DBI`: permite la conexión a bases de datos desde R, incluyendo servidores reales o simulados (mock servers).\
+-   `duckdb`: permite trabajar con bases de datos SQL en memoria de manera eficiente, ideal para datos sintéticos.
+-   `CDMConnector`: permite crear el objeto *cdm*, el cual contiene un *cdmSchema* desde el que accedemos a nuestras tablas OMOP. También proporciona un *writeSchema* en el que podemos instanciar nuestras cohortes y tablas.
+-   `omopgenerics`: proporciona una gran cantidad de funciones básicas para OMOP CDM. \
+-   `dplyr`: ofrece un conjunto de funciones para manipulación de datos de forma sencilla.\
+-   `lubridate`: facilita el manejo y transformación de fechas y horas.
+
+
+Para mantener el entorno de trabajo limpio y evitar conflictos entre paquetes, no cargaremos todas las librerías con library(). En su lugar, utilizaremos la sintaxis paquete::función, que permite llamar directamente a una función específica sin adjuntar todo el paquete al entorno global.
+
+La única excepción será dplyr, que sí cargaremos con library(dplyr) porque utilizaremos muchas de sus funciones de forma continua (como filter(), select(), mutate(), summarise(), group_by(), etc.), lo que hace más práctico y legible el código.
+
+
+```{r}
+library(dplyr)
+```
+
+
+## Conexión Synthea
+
+El siguiente código establece la conexión a la base de datos sintética. Deberás conectarte de la misma manera al inicio de cada práctica:
+
+
+```{r}
+db <- DBI::dbConnect(
+  duckdb::duckdb(), 
+  CDMConnector::eunomiaDir("synthea-covid19-10k")
+)
+```
+
+A partir de aquí, trabajamos como si se tratase de una base de datos real, por lo tanto lo que se ha visto en la parte teórica se puede aplicar.
+
+## Conexión CDM
+
+### Ejercicio 1
+
+##### Crea el objeto cdm y utiliza sus tablas para responder las siguientes preguntas.
+
+La información que nos falta para crear el objeto CDM es el nombre de los **schemes**. En estos caso, los dos se denominan "main". 
+
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+Para crear el cdm a partir de una conexión disponemos de una función de la librería *CDMConnector*.
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+Recuerda que para acceder a las tablas se utiliza `cdm$nombre_tabla`
+:::
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+cdm <- CDMConnector::cdmFromCon(
+  db,
+  cdmSchema = "main",
+  writeSchema = "main"
+)
+```
+
+Una vez tenemos el objeto *cdm*, recomendamos acceder a algunas de las tablas para ver qué columnas y tipos de datos contiene. Por ejemplo, en la tabla "condition_ocurrence", cada fila corresponde a un diagnóstico de una persona un determinado día. El código del diagnóstico lo encontramos en la columna *condition_concept_id*. Para saber a qué hace referencia este diagnostico, tenemos la tabla "concept" dónde por cada *concept_id* tenemos el *concept_name* que lo describe.
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+En los siguientes ejercicios utilizarás funciones de la librería "omopgenerics".
+:::
+
+
+##### a) ¿Cuál es el nombre que lleva asignado el cdm?
+
+```{r, eval=FALSE, echo=FALSE}
+omopgenerics::cdmName(cdm)
+```
+
+##### b) ¿Qué tablas contiene el cdm que hemos creado?
+
+
+```{r, eval=FALSE, echo=FALSE}
+omopgenerics::listSourceTables(cdm)
+```
+
+##### c) ¿Qué versión del cdm estamos utilizando?
+
+```{r, eval=FALSE, echo=FALSE}
+omopgenerics::cdmVersion(cdm)
+```
+
+### Ejercicio 2
+
+##### a) ¿A que corresponden los conceptos con códigos 8532, 45756772, 21600724, y 1123810?
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+cdm$concept |>
+  filter(concept_id %in% c(8532, 45756772, 21600724, 1123810)) 
+```
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+Los códigos del enunciado corresponden a *concept_id* de la tabla concept.
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+La función `filter()` del paquete dplyr permite filtrar la tabla según el contenido de una columna. Por ejemplo, para obtener la persona con person_id 10 hacemos:
+
+```{r}
+cdm$person |> filter(person_id == 10)
+```
+:::
+
+##### b) ¿Cuántas personas registradas como mujer hay en la base de datos?
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+cdm$person |>
+  filter(gender_concept_id == 8532) |>
+  tally()
+```
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+La tabla "person" contiene información sobre el sexo de los pacientes.
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+La función `tally()` del paquete dplyr cuenta el número de filas.
+:::
+
+##### c) ¿Cuando empieza y acaba el registro de los datos?
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+# inicio
+cdm$observation_period |> 
+  filter(observation_period_start_date == min(observation_period_start_date)) |>
+  distinct(observation_period_start_date)
+
+# final
+cdm$observation_period |> 
+  filter(observation_period_end_date == max(observation_period_end_date)) |>
+  distinct(observation_period_end_date)
+```
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+La tabla "observation_period" contiene información sobre cuando empieza (observation_period_start_date) y cuando acaba (observation_period_end_date) el seguimiento clínico de cada persona. Para responder a la pregunta, podemos mirar cual es el *start date* más pequeño y cual es el *end date* más grande.
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+Para obtener, por ejemplo, las filas que contengan el máximo de un valor, hacemos lo siguiente:
+
+```{r}
+# tabla
+tabla <- tibble(nombres = c("Joan", "Marta", "Lluís", "Mireia"), puntuacion = c(2, 4, 4, 3))
+
+# filtramos los que tengan mayor puntuación
+tabla |> filter(puntuacion == max(puntuacion))
+```
+
+Para obtener el mínimo, utilizaríamos la función `min()`.
+:::
+
+
+
+## Relación entre tablas del CDM
+
+### Ejercicio 3
+
+##### a) ¿Cuántos hombres de la base de datos están muertos?
+
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+Tendremos que utilizar la tabla "person" y la tabla "death". El *gender_concept_id = 8507* identifica a aquellas personas registradas como hombre en la base de datos. 
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+La función *"inner_join()"* de dplyr nos permite combinar dos tablas a partir de una clave común (en este caso el "person_id"). Solo aquellos person_id que aparezcan en ambas tablas serán considerados.
+
+```{r}
+person <- tibble(
+  person_id = c(1, 2, 3, 4), 
+  sex = c("Male", "Female", "Female", "Male")
+)
+
+death <- tibble(
+  person_id = c(2, 4, 5),
+  death_date = as.Date(c("2020-01-10", "2021-03-05", "2019-12-01"))
+)
+
+inner_join(death, person, by = "person_id")
+```
+:::
+
+
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+cdm$death |> 
+  inner_join(
+    cdm$person |> filter(gender_concept_id == 8507),
+    by = c("person_id")
+  ) |> 
+  tally()
+```
+
+##### b) ¿Cuáles son las diferentes causas de muerte en la base de datos? 
+
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+La tabla "death" contiene una columna que indica la causa de muerte. La función *colnames(cdm$death)* te permitirá ver las columnas de la tabla.
+:::
+
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+Puedes usar la función *distinct()* de dplyr para ver los valores únicos de una columna. Si quisieras agregar el concept_name de cada causa de muerte, puedes usar la función *left_join()* que  mantiene TODAS las filas de la tabla de la izquierda, y añade información de la tabla de la derecha solo cuando hay coincidencia en la clave.
+:::
+
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+cdm$death |> 
+  distinct(cause_concept_id) |> 
+  left_join(
+    cdm$concept |> select(concept_id , concept_name),
+    by = c("cause_concept_id" = "concept_id")
+  )
+  
+```
+
+
+
+##### c) ¿Cuántos hombres han muerto por cada causa?
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+La función *group_by()* seguida de la función *tally()* te permitirá contar el número de eventos por cada grupo.
+:::
+
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+cdm$death |> 
+  inner_join(
+    cdm$person |> filter(gender_concept_id == 8507),
+    by = c("person_id")
+  ) |> 
+  group_by(cause_concept_id) |> 
+  tally() 
+```
+
+
+
+
+## SQL i R
+
+**R:** Es un lenguaje amigable para el usuario. Dispone de paquetes que permiten realizar la mayor parte de los análisis estadísticos que necesitamos, y ofrece pedidos sencillos para gestionar tablas y datos (tidyverse). Sin embargo, R opera completamente en memoria, lo cual acontece un problema cuando se trabaja con bases de datos extensas como por ejemplo los registros electrónicos de salud.
+
+**SQL:** Es un lenguaje de consulta de bases de datos, diseñado específicamente para almacenar, gestionar e interactuar con una base de datos. SQL es muy útil para resolver problemas de memoria cuando se trabaja con bases de datos, puesto que opera al "lado de la base de datos", los datos se encuentran en el server y no en la memoria RAM (en la cual R opera). No obstante, algunas operaciones estadísticas no son posibles en SQL, o al menos son extremadamente difíciles y enrevesadas.
+
+Lo que hace el paquete *dbplyr* es traducir nuestros pedidos R en SQL, de forma que se ejecutan al "lado de la base de datos" y desprendido nosotros podemos ver el resultado en RStudio. A continuación, introducimos 3 funciones importantes y algunos aspectos a tener en cuenta.
+
+#### compute()
+
+[compute](https://dplyr.tidyverse.org/reference/compute.html): se utiliza para forzar la computación de un conjunto de pedidos. Si no se utiliza "compute", nuestra variable solo contiene el conjunto de comandos SQL que se tienen que ejecutar, y no la tabla resultante. Se recomienda utilizarlo al final de cada conjunto de operaciones, puesto que así cuando se llame la variable en un futuro, estaremos llamando a la tabla resultante y no a un conjunto de comandos que se tendrán que ejecutar cada vez.
+
+```{r, echo=TRUE, eval=TRUE}
+table7 <- cdm$person |>
+  inner_join(cdm$observation_period) |>
+  select(person_id, year_of_birth, observation_period_start_date, observation_period_end_date) |>
+  compute()
+table7
+```
+
+#### collect()
+
+[collect](https://dplyr.tidyverse.org/reference/compute.html): se utiliza para mover un conjunto de datos desde el lado de la base de datos a nuestro entorno R. Típicamente haremos todas las operaciones posibles junto a la base de datos, y cuando llegue el momento de hacer algún análisis (por ejemplo, ajustar una regresión Cox), utilizaremos collect() para mover la tabla al entorno R.
+
+Fíjate que en la salida siguiente, después de utilizar "collect()", la tabla aparece como un tibble en lugar de SQL, como aparecía antes (parte superior de la tabla de salida).
+
+```{r, echo=TRUE, eval=TRUE}
+table8 <- table7 |>
+  filter(year_of_birth > 2010) |>
+  collect()
+table8
+```
+
+#### pull()
+
+[pull](https://dplyr.tidyverse.org/reference/pull.html): se utiliza para obtener una columna de un conjunto de datos de la tabla. Por ejemplo, si queremos un listado de todas los *person_id* de la tabla person.
+
+```{r, echo=TRUE, eval=TRUE}
+person_id <- cdm$person |> pull("person_id")
+person_id[1:20]
+```
+
+
+
+### Ejercicio 4
+
+##### a) ¿Cuándo es el primer diagnóstico de COVID registrado con el concept_id = 37311061 en la base de datos? ¿En qué tipo de consulta se realizó (urgencia, hospitalización o externa)?
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+Los diagnósticos de salud se registran en la tabla "condition_occurrence". El tipo de visita se registra en la tabla "visit_occurrence" (columna: visit_concept_id).
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+Puedes comenzar creando una tabla con los diagnósticos de covid, utilizando un `compute()`. 
+Combina la función `filter()` con `min()` para encontrar el primer diagnóstico. 
+Luego utiliza un `left_join()` utilizando la clave "visit_occurrence_id".
+:::
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+covid_diagnostics <- cdm$condition_occurrence |> 
+  filter(condition_concept_id == 37311061) |> 
+  select(condition_occurrence_id, person_id, condition_start_date, condition_end_date, visit_occurrence_id) |> 
+  compute()
+
+
+covid_diagnostics |> 
+  filter(condition_start_date == min(condition_start_date)) |> 
+  left_join( 
+    cdm$visit_occurrence |> select(visit_occurrence_id, visit_concept_id), 
+    by = c("visit_occurrence_id")
+  ) |> 
+  left_join(
+    cdm$concept, by = c("visit_concept_id" = "concept_id")
+  ) |> 
+  select(person_id, condition_start_date, visit_concept_id, concept_name)
+  
+```
+
+
+##### b) ¿Cuántas personas tienen un registro de COVID (concept_id = 37311061) antes del 1 de enero de 2021? De estos registros, ¿cuántas corresponden a personas registradas como mujer?
+
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+Para definir una fecha utilizar la función as.Date(): `as.Date("2021-06-01")`. 
+:::
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+covid_diagnostics |> 
+  filter(condition_start_date < as.Date("2021-01-01")) |> 
+  tally()
+
+covid_diagnostics |> 
+  filter(condition_start_date < as.Date("2021-01-01")) |> 
+  inner_join(
+    cdm$person |> filter(gender_concept_id == 8532) |> select(person_id), 
+    by="person_id"
+  ) |> 
+ tally()
+
+```
+
+
+
+##### c) ¿A cuántos individuos diagnosticados con COVID (con concept_id 37311061) le administraron oxígeno el mismo día del diagnóstico (concept_id = 4162736)?
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+Los procedimientos se registran en la tabla "procedure_occurrence". 
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+Puedes hacer un join con más de una clave (ejemplo: person_id y start_date).
+:::
+
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+covid_diagnostics |> 
+  inner_join(
+    cdm$procedure_occurrence |> filter(procedure_concept_id == 4162736),
+    by = c("person_id", "condition_start_date" = "procedure_date")
+  ) |>
+  tally()
+
+```
+
+
+##### d) ¿Qué otros procedimientos se registraron a la fecha de diagnóstico de COVID?
+
+
+
+```{r, eval=TRUE, echo=FALSE, output=FALSE}
+covid_diagnostics|> 
+  inner_join(
+    cdm$procedure_occurrence,
+    by = c("person_id", "condition_start_date" = "procedure_date")
+  ) |>
+  distinct(procedure_concept_id) |> 
+  left_join(
+    cdm$concept |> select(concept_id, concept_name),
+    by = c("procedure_concept_id" ="concept_id")
+  ) 
+
+```
+
+
+
+
+## Ejercicios extra
+
+
+### Ejercicio 5
+
+##### De las personas con un diagnóstico de COVID, ¿cuántos tuvieron una prescripción de paracetamol desde la fecha de diagnóstico a los 15 días posteriores?
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - OMOP
+
+La tabla donde puedes encontrar información de precripciones de medicamentos es la "drug_exposure". El concept_id del paracetamol es 19020053 (concept_name = acetaminophen 500 MG Oral Tablet)
+:::
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+Puede que haya más de una prescripción durante ese período de tiempo por cada individuo; hará falta filtrar la primera prescipción de cada uno.
+
+:::
+
+
+```{r, echo=FALSE, eval=TRUE, output=FALSE}
+covid_paracetamol_db <- covid_diagnostics |>
+  inner_join(
+    cdm$drug_exposure |> filter(drug_concept_id == 19020053) |> select(person_id, drug_exposure_start_date)
+  ) |>
+  filter(
+    drug_exposure_start_date >= condition_start_date & 
+    drug_exposure_start_date <= condition_start_date + lubridate::days(15)
+  ) |>
+  group_by(person_id, condition_start_date) |>
+  filter(drug_exposure_start_date == min(drug_exposure_start_date)) |>
+  ungroup() |>
+  compute()
+
+# Número de registros
+covid_paracetamol_db |> tally()
+```
+
+
+
+::: {.callout-warning appearance="simple" collapse="false"}
+## Pasos
+
+1.  Filtra la tabla *drug* exposure para obtener únicamente los eventos de paracetamol.
+2.  Une la tabla con diagnósticos que has creado en el ejercicio anterior con la tabla drug_exposure filtrada.
+3.  Filtra la tabla resultante para obtener solo las presecripciones de paracetamol que se dieron desde que el paciente tenía COVID-19 hasta 15 días posteriores (*cohort_start_date* hasta *cohort_end_date*).
+4.  Eliminar los duplicados de las prescripciones (por ejemplo, quedándonos con la primera).
+:::
+
+### Ejercicio 6
+
+##### Representa el número de diagnósticos COVID-19 mensuales por año en un diagrama de barras.
+
+```{r, echo=FALSE, eval=TRUE, output=FALSE}
+library(ggplot2)
+
+covid_any <- covid_diagnostics |>
+  mutate(mes = lubridate::month(condition_start_date),
+         any = lubridate::year(condition_start_date)) |>
+  group_by(mes, any) |>
+  tally() |>
+  ungroup() |>
+  collect()
+
+# plot
+covid_any |>
+  ggplot(aes(x = mes, y = n)) +
+  geom_col() +
+  facet_wrap(any ~ .)
+```
+
+::: {.callout-warning appearance="simple" collapse="false"}
+## Ten en cuenta:
+
+-   Para extraer el mes y el año de una fecha puedes utilizar las funciones `month` y `year` del paquete lubridate.
+-   No se puede realizar una gráfica con datos que están en el server, hará falta hacer `collect()` antes.
+-   Para hacer el gráfico necesitarás crear una tabla con los números de casos por mes y año. 
+-   Puedes utilizar la librería `ggplot2` para realizar la gráfica.
+:::
+
+
+### Ejercicio 7 
+
+Calcular un resumen estadístico del año de nacimiento de todos los individuos del cdm, estratificado por sexo. Representar gráficamente la distribución del año de nacimiento por sexo mediante un diagrama de caja (boxplot).
+
+::: {.callout-tip appearance="simple" collapse="true"}
+## Pista - Programación R
+
+Para cada grupo, obtener el mínimo, primer cuartil (Q25), mediana, tercer cuartil (Q75) y máximo mediante la función `summarise()`. Recuerda hacer un collect() para poder graficar.
+
+:::
+
+
+```{r, echo=FALSE, eval=TRUE, output=FALSE}
+sex_birth_summary <- cdm$person |>
+  group_by(gender_concept_id) |>
+  summarise(
+    min_year_of_birth = min(year_of_birth, na.rm = TRUE),
+    q25_year_of_birth = quantile(year_of_birth, 0.25, na.rm = TRUE),
+    median_year_of_birth = median(year_of_birth, na.rm = TRUE),
+    q75_year_of_birth = quantile(year_of_birth, 0.75, na.rm = TRUE),
+    max_year_of_birth = max(year_of_birth, na.rm = TRUE)
+  ) |>
+  left_join(
+    cdm$concept |> select(concept_id, concept_name), 
+    by = c("gender_concept_id" = "concept_id")
+  ) |>
+  collect()
+
+sex_birth_summary |>
+  ggplot(mapping = aes(
+    x = concept_name,
+    group = concept_name,
+    fill = concept_name
+  )) +
+  geom_boxplot(
+    mapping = aes(
+      lower = q25_year_of_birth,
+      upper = q75_year_of_birth,
+      middle = median_year_of_birth,
+      ymin = min_year_of_birth,
+      ymax = max_year_of_birth
+    ),
+    stat = "identity", width = 0.5
+  ) +
+  xlab("Sex")
+```
+
+
+
+
+## Desconexión del CDM
+
+Recuerda desconectarte del servidor una vez hayas acabado los análisis.
+
+```{r, eval=FALSE}
+CDMConnector::cdmDisconnect(cdm)
+```
+
+
+
+## Consejos de optimización de código:
+
+- Prioriza joins (inner, left, right, anti) sobre filtros
+
+- Ejecuta las operaciones en la base de datos siempre que sea posible
+
+- Evita cambiar innecesariamente entre BD y R
+
+- Usa `compute()` cuando quieras materializar (y re-utilizar) resultados intermedios
+
+- Usa `collect()` solo cuando realmente necesites los datos en memoria
+

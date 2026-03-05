@@ -28,4 +28,4 @@ Sigue estas instrucciones para preparar tu "R environment":
 
 Descarga el repositorio de GitHub como carpeta zip y descomprime los archivos.
 
-Después de estos pasos abre el proyecto `CURSO_OMOP_2026.Rproj` (ubicado en la carpeta Practicas) en RStudio.
+Después de estos pasos abre el proyecto `CURSO_OMOP_2026.Rproj` (ubicado en la carpeta Practicas) en RStudio y sigue las intrucciones del archivo SetUp.

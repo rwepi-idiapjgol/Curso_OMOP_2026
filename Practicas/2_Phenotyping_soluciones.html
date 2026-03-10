@@ -3229,15 +3229,13 @@ Pista - OMOP
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>omopgenerics<span class="sc">::</span><span class="fu">attrition</span>(cdm<span class="sc">$</span>cohort)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 7
+<pre><code># A tibble: 4 × 7
   cohort_definition_id number_records number_subjects reason_id reason          
                  &lt;int&gt;          &lt;int&gt;           &lt;int&gt;     &lt;int&gt; &lt;chr&gt;           
 1                    1          10754           10754         1 Initial qualify…
-2                    1          10754           10754         2 Non-missing sex 
-3                    1          10754           10754         3 Sex requirement…
-4                    1          10754           10754         4 Non-missing yea…
-5                    1           6612            6612         5 Age requirement…
-6                    1           6496            6496         6 Prior observati…
+2                    1          10754           10754         2 Sex requirement…
+3                    1           6612            6612         3 Age requirement…
+4                    1           6496            6496         4 Prior observati…
 # ℹ 2 more variables: excluded_records &lt;int&gt;, excluded_subjects &lt;int&gt;</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Solución: </span></span>
@@ -3284,9 +3282,9 @@ Pista - OMOP
 </ul>
 <p>El tiempo mínimo de observación previo a la entrada en la cohorte debe ser de 30 días.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cdm<span class="sc">$</span>cohort <span class="ot">&lt;-</span> cdm <span class="sc">|&gt;</span></span>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cdm<span class="sc">$</span>cohort_groups <span class="ot">&lt;-</span> cdm <span class="sc">|&gt;</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    CohortConstructor<span class="sc">::</span><span class="fu">demographicsCohort</span>(</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;cohort&quot;</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;cohort_groups&quot;</span>,</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ageRange =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">18</span>, <span class="dv">65</span>),<span class="fu">c</span>(<span class="dv">66</span>, <span class="dv">150</span>)),</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex =</span> <span class="fu">c</span>(<span class="st">&quot;Male&quot;</span>, <span class="st">&quot;Female&quot;</span>),</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">minPriorObservation =</span> <span class="dv">30</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -3294,7 +3292,7 @@ Pista - OMOP
 <section id="a-cuantos-individuos-tiene-cada-subcohorte" class="level5">
 <h5 class="anchored" data-anchor-id="a-cuantos-individuos-tiene-cada-subcohorte">a) ¿Cuantos individuos tiene cada subcohorte?</h5>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>omopgenerics<span class="sc">::</span><span class="fu">cohortCount</span>(cdm<span class="sc">$</span>cohort)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>omopgenerics<span class="sc">::</span><span class="fu">cohortCount</span>(cdm<span class="sc">$</span>cohort_groups)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 3
   cohort_definition_id number_records number_subjects
@@ -3309,7 +3307,7 @@ Pista - OMOP
 <section id="b-como-puedes-identificar-cada-subcohorte" class="level5">
 <h5 class="anchored" data-anchor-id="b-como-puedes-identificar-cada-subcohorte">b) ¿Como puedes identificar cada subcohorte?</h5>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>omopgenerics<span class="sc">::</span><span class="fu">settings</span>(cdm<span class="sc">$</span>cohort)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>omopgenerics<span class="sc">::</span><span class="fu">settings</span>(cdm<span class="sc">$</span>cohort_groups)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 5
   cohort_definition_id cohort_name    age_range sex    min_prior_observation
@@ -3325,7 +3323,7 @@ Pista - OMOP
 </section>
 <section id="ejercicio-3" class="level3">
 <h3 class="anchored" data-anchor-id="ejercicio-3">Ejercicio 3</h3>
-<p>Manipula la cohorte creada en el ejercicio 2 considerando que queremos incluir sujetos que entraron en la cohorte durante el período 01/03/2020 - 31/12/2024</p>
+<p>Manipula la cohorte creada en el ejercicio 1 considerando que queremos incluir sujetos que entraron en la cohorte durante el período 01/03/2020 - 31/12/2024</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>cdm<span class="sc">$</span>cohort <span class="ot">&lt;-</span> cdm<span class="sc">$</span>cohort <span class="sc">|&gt;</span>  </span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  CohortConstructor<span class="sc">::</span><span class="fu">requireInDateRange</span>(</span>
@@ -3338,23 +3336,18 @@ Pista - OMOP
 <div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>omopgenerics<span class="sc">::</span><span class="fu">attrition</span>(cdm<span class="sc">$</span>cohort)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 32 × 7
-   cohort_definition_id number_records number_subjects reason_id reason         
-                  &lt;int&gt;          &lt;int&gt;           &lt;int&gt;     &lt;int&gt; &lt;chr&gt;          
- 1                    1          10754           10754         1 Initial qualif…
- 2                    1          10754           10754         2 Non-missing sex
- 3                    1           5165            5165         3 Sex requiremen…
- 4                    1           5165            5165         4 Non-missing ye…
- 5                    1           3151            3151         5 Age requiremen…
- 6                    1           3150            3150         6 Prior observat…
- 7                    1            146             146         7 cohort_start_d…
- 8                    1            146             146         8 cohort_start_d…
- 9                    2          10754           10754         1 Initial qualif…
-10                    2          10754           10754         2 Non-missing sex
-# ℹ 22 more rows
+<pre><code># A tibble: 6 × 7
+  cohort_definition_id number_records number_subjects reason_id reason          
+                 &lt;int&gt;          &lt;int&gt;           &lt;int&gt;     &lt;int&gt; &lt;chr&gt;           
+1                    1          10754           10754         1 Initial qualify…
+2                    1          10754           10754         2 Sex requirement…
+3                    1           6612            6612         3 Age requirement…
+4                    1           6496            6496         4 Prior observati…
+5                    1            289             289         5 cohort_start_da…
+6                    1            289             289         6 cohort_start_da…
 # ℹ 2 more variables: excluded_records &lt;int&gt;, excluded_subjects &lt;int&gt;</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Solución: 3004 sujetos</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Solución: 6207 sujetos</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="b-comprueba-que-las-fechas-de-entrada-estan-en-el-período-establecido.-para-hacerlo-puedes-buscar-las-fechas-de-entrada-mínima-y-máxima-observadas" class="level5">
@@ -3383,7 +3376,7 @@ Pista - Programación R
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># Source:   SQL [?? x 2]
-# Database: DuckDB 1.4.4 [agiuliodori@Windows 10 x64:R 4.4.0/C:\Users\agiuliodori\AppData\Local\Temp\RtmpwBk2p1\fileaa84a752bdd.duckdb]
+# Database: DuckDB v1.2.1 [agiuliodori@Windows 10 x64:R 4.4.0/C:\Users\agiuliodori\AppData\Local\Temp\RtmpMn7sg8\file574856a81d12.duckdb]
   min_end_date max_end_date
   &lt;date&gt;       &lt;date&gt;      
 1 2020-03-03   2023-04-15  </code></pre>
@@ -3437,14 +3430,14 @@ Pista - OMOP
 <pre><code># A tibble: 8 × 6
   concept_id found_from    concept_name domain_id vocabulary_id standard_concept
        &lt;int&gt; &lt;chr&gt;         &lt;chr&gt;        &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;           
-1     703445 From initial… Low risk ca… Condition SNOMED        S               
-2     703446 From initial… Moderate ri… Condition SNOMED        S               
+1     756039 From initial… Respiratory… Condition OMOP Extensi… S               
+2     756031 From initial… Bronchitis … Condition OMOP Extensi… S               
 3     703447 From initial… High risk c… Condition SNOMED        S               
 4     705076 From initial… Post-acute … Condition OMOP Extensi… S               
-5     756031 From initial… Bronchitis … Condition OMOP Extensi… S               
-6     756039 From initial… Respiratory… Condition OMOP Extensi… S               
-7    1340294 From initial… Exacerbatio… Condition OMOP Extensi… S               
-8   37311061 From initial… COVID-19     Condition SNOMED        S               </code></pre>
+5    1340294 From initial… Exacerbatio… Condition OMOP Extensi… S               
+6   37311061 From initial… COVID-19     Condition SNOMED        S               
+7     703446 From initial… Moderate ri… Condition SNOMED        S               
+8     703445 From initial… Low risk ca… Condition SNOMED        S               </code></pre>
 </div>
 </div>
 </section>
@@ -3726,11 +3719,11 @@ Pista - OMOP
   cohort_definition_id number_records number_subjects reason_id reason          
                  &lt;int&gt;          &lt;int&gt;           &lt;int&gt;     &lt;int&gt; &lt;chr&gt;           
 1                    1            964             964         1 Initial qualify…
-2                    1            964             964         2 Record in obser…
-3                    1            964             964         3 Not missing rec…
+2                    1            964             964         2 Record start &lt;=…
+3                    1            964             964         3 Record in obser…
 4                    1            964             964         4 Merge overlappi…
 5                    1            964             964         5 pad `cohort_end…
-6                    1            164             164         6 Require 1 or mo…
+6                    1            164             164         6 In cohort covid…
 # ℹ 2 more variables: excluded_records &lt;int&gt;, excluded_subjects &lt;int&gt;</code></pre>
 </div>
 </div>
@@ -3767,11 +3760,11 @@ Pista - OMOP
   cohort_definition_id number_records number_subjects reason_id reason          
                  &lt;int&gt;          &lt;int&gt;           &lt;int&gt;     &lt;int&gt; &lt;chr&gt;           
 1                    1            964             964         1 Initial qualify…
-2                    1            964             964         2 Record in obser…
-3                    1            964             964         3 Not missing rec…
+2                    1            964             964         2 Record start &lt;=…
+3                    1            964             964         3 Record in obser…
 4                    1            964             964         4 Merge overlappi…
 5                    1            964             964         5 pad `cohort_end…
-6                    1            164             164         6 Require 1 or mo…
+6                    1            164             164         6 In cohort covid…
 7                    1            164             164         7 Concept paracet…
 # ℹ 2 more variables: excluded_records &lt;int&gt;, excluded_subjects &lt;int&gt;</code></pre>
 </div>

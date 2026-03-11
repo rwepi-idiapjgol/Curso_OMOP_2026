@@ -427,3 +427,4 @@ restart <- cdm$my_cohort |>
 DrugUtilisation::plotDrugRestart(restart)
 ```
 :::
+
